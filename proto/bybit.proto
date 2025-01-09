@@ -1,0 +1,37 @@
+syntax = "proto3";
+
+package bybit;
+option go_package = "./proto";
+
+service Bybit {
+  rpc GetAllAssetWithNetworks(GetAllAssetWithNetworksRequest) returns (GetAllAssetWithNetworksRespose){}
+}
+
+
+message GetAllAssetWithNetworksRequest {}
+
+
+message GetAllAssetWithNetworksRespose {
+
+  message Chains {
+      string chain = 1;
+      string chain_type = 2;
+      string confirmation = 3;
+      string withdraw_fee = 4;
+      string deposit_min = 5;
+      string withdraw_min = 6;
+      string min_accuracy = 7;
+      string chain_deposit = 8;
+      string chain_withdraw = 9;
+      string withdraw_percentage_fee = 10;
+  }
+
+  message Rows {
+      string name = 1;
+      string coin = 2;
+      string remain_amount = 3;
+      repeated Chains chains = 4;
+  }
+
+  repeated Rows rows = 1;
+}
