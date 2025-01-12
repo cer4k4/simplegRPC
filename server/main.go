@@ -5,8 +5,8 @@ import (
 	"log"
 	"net"
 
-	httpbybit "grpc-example/http"
 	pb "grpc-example/proto"
+	httpbybit "grpc-example/server/http"
 
 	"google.golang.org/grpc"
 )
@@ -17,13 +17,40 @@ type bybit struct {
 }
 
 func (s *bybit) GetAllAssetWithNetworks(ctx context.Context, req *pb.GetAllAssetWithNetworksRequest) (*pb.GetAllAssetWithNetworksRespose, error) {
-	if err, result := s.HttpBybit.GetCoinInfo(); err != nil {
+	err, result := s.HttpBybit.GetCoinInfo()
+	if err != nil {
 		log.Println(err)
-	} else {
-
-		return &pb.GetAllAssetWithNetworksRespose{append(result.Rows, result.Rows...)}
 	}
+	// Create a slice of pointers to store the rows
+	var List []*pb.GetAllAssetWithNetworksRespose_Rows
 
+	for c := range result.Rows {
+		// Create a new row and get its address
+		ass := &pb.GetAllAssetWithNetworksRespose_Rows{
+			Coin:         result.Rows[c].Coin,
+			Name:         result.Rows[c].Name,
+			RemainAmount: result.Rows[c].RemainAmount,
+		}
+
+		for i := range result.Rows[c].Chains {
+			chain := &pb.GetAllAssetWithNetworksRespose_Chains{
+				Chain:                 result.Rows[c].Chains[i].Chain,
+				ChainDeposit:          result.Rows[c].Chains[i].ChainDeposit,
+				ChainType:             result.Rows[c].Chains[i].ChainType,
+				ChainWithdraw:         result.Rows[c].Chains[i].ChainWithdraw,
+				Confirmation:          result.Rows[c].Chains[i].Confirmation,
+				DepositMin:            result.Rows[c].Chains[i].DepositMin,
+				MinAccuracy:           result.Rows[c].Chains[i].MinAccuracy,
+				WithdrawFee:           result.Rows[c].Chains[i].WithdrawFee,
+				WithdrawMin:           result.Rows[c].Chains[i].WithdrawMin,
+				WithdrawPercentageFee: result.Rows[c].Chains[i].WithdrawPercentageFee,
+			}
+			ass.Chains = append(ass.Chains, chain)
+		}
+		List = append(List, ass)
+
+	}
+	return &pb.GetAllAssetWithNetworksRespose{Rows: List}, nil
 }
 
 func main() {
